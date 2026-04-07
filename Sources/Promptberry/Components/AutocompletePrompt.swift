@@ -114,6 +114,13 @@ struct AutocompletePrompt<Value: Sendable>: Sendable {
                 }
 
             // ── Regular character ─────────────────────────────────────────
+            case .space:
+                input.append(" ")
+                filtered = applyFilter(input: input)
+                highlightCursor = -1
+                state = .active
+                render(state: state, input: input, filtered: filtered, highlightCursor: highlightCursor, lineCount: &lineCount)
+
             case .char(let c):
                 input.append(c)
                 filtered = applyFilter(input: input)

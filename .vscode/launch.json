@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Promptberry}",
+            "name": "Debug SimpleExample",
+            "target": "SimpleExample",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug SimpleExample"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Promptberry}",
+            "name": "Release SimpleExample",
+            "target": "SimpleExample",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release SimpleExample"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Promptberry}",
+            "name": "Debug Example",
+            "target": "Example",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug Example"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:Promptberry}",
+            "name": "Release Example",
+            "target": "Example",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release Example"
+        }
+    ]
+}

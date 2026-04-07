@@ -49,6 +49,11 @@ struct TextPrompt: Sendable {
                 state = .active
                 render(state: state, input: input, lineCount: &lineCount)
 
+            case .space:
+                input.append(" ")
+                state = .active
+                render(state: state, input: input, lineCount: &lineCount)
+
             case .char(let c):
                 input.append(c)
                 state = .active

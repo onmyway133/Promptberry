@@ -25,7 +25,14 @@ struct SimpleExample {
             let features = try Promptberry.multiselect(
                 "Include extras:",
                 options: ["Tests", "CI workflow", "README", "SwiftLint"],
+                allowOther: true,
                 initialValues: ["Tests", "README"]
+            )
+
+            let license = try Promptberry.autocomplete(
+                "License:",
+                options: ["MIT", "Apache 2.0", "GPL-3.0", "BSD-2-Clause", "BSD-3-Clause", "MPL-2.0", "Unlicense"],
+                placeholder: "Type to filter..."
             )
 
             let description = try Promptberry.multiline(
@@ -63,10 +70,10 @@ struct SimpleExample {
                 try await Task.sleep(nanoseconds: 200_000_000)
                 await p.advance()
             }
-            await p.complete("Files generated!")
+            await p.complete(message: "Files generated!")
 
             Promptberry.note(
-                "Type:     \(type_)\nExtras:   \(features.joined(separator: ", "))\nAbout:    \(description)",
+                "Type:     \(type_)\nExtras:   \(features.joined(separator: ", "))\nLicense:  \(license)\nAbout:    \(description)",
                 title: name
             )
 

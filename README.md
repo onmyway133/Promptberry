@@ -1,10 +1,14 @@
 # Promptberry
 
 <p align="center">
-  <img src="logo.png" width="120" alt="Promptberry logo" />
+  <img src="images/logo.png" width="120" alt="Promptberry logo" />
 </p>
 
 <p align="center">Beautiful, interactive CLI prompts for Swift</p>
+
+<p align="center">
+  <img src="images/prompt.gif" alt="Promptberry demo" />
+</p>
 
 ```
 ┌  My App v1.0
@@ -34,7 +38,10 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/onmyway133/Promptberry", from: "1.0.0")
+    .package(
+        url: "https://github.com/onmyway133/Promptberry", 
+        from: "1.0.0"
+    )
 ],
 targets: [
     .executableTarget(
@@ -303,7 +310,7 @@ try await tasks([
 ])
 ```
 
-If any task throws, its spinner shows an error and the error propagates.
+If any task throws, its spinner shows an error and the error propagates.t
 
 ## Info & Logging
 
@@ -371,18 +378,10 @@ ColorSupport.enabled = true
 // or set FORCE_COLOR=1 in the environment
 ```
 
-## Example
-
-Run the bundled demo:
-
-```bash
-swift run Example
-```
-
 ## Reference
 
 - Inspired by [clack](https://github.com/bombshell-dev/clack)
 
 ## License
 
-MIT
+Promptberry is available under the MIT license. Copyright (c) 2026 Khoa Pham.

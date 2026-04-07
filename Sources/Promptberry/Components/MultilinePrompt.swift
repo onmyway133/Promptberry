@@ -64,6 +64,11 @@ struct MultilinePrompt: Sendable {
                     render(state: state, lines: lines, current: current, lineCount: &lineCount)
                 }
 
+            case .space:
+                current.append(" ")
+                state = .active
+                render(state: state, lines: lines, current: current, lineCount: &lineCount)
+
             case .char(let c):
                 current.append(c)
                 state = .active

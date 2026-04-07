@@ -65,13 +65,14 @@ struct ConfirmPrompt: Sendable {
         switch state {
         case .active:
             lines.append("\(Symbols.active.cyan)  \(message.bold)")
-            let yes = value
-                ? "\(Symbols.selected.cyan) \(activeLabel.cyan)"
-                : "\(Symbols.unselected.dim) \(inactiveLabel.dim)"
-            let no = value
+            // inactiveLabel stays left, activeLabel stays right — only the dot moves
+            let left = value
                 ? "\(Symbols.unselected.dim) \(inactiveLabel.dim)"
-                : "\(Symbols.selected.cyan) \(activeLabel.cyan)"
-            lines.append("\(Symbols.bar.gray)  \(yes)  /  \(no)")
+                : "\(Symbols.selected.cyan) \(inactiveLabel.cyan)"
+            let right = value
+                ? "\(Symbols.selected.cyan) \(activeLabel.cyan)"
+                : "\(Symbols.unselected.dim) \(activeLabel.dim)"
+            lines.append("\(Symbols.bar.gray)  \(left)  /  \(right)")
             lines.append(Symbols.barEnd.gray)
 
         case .submitted(let v):
