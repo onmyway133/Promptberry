@@ -310,7 +310,7 @@ try await tasks([
 ])
 ```
 
-If any task throws, its spinner shows an error and the error propagates.t
+If any task throws, its spinner shows an error and the error propagates.
 
 ## Info & Logging
 
@@ -349,7 +349,7 @@ let profile = try Promptberry.group(
 
 ## Colors
 
-All strings support Rainbow-style chaining:
+All strings support colorful text chaining:
 
 ```swift
 "success".green.bold
