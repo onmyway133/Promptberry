@@ -238,6 +238,63 @@ public enum Promptberry {
         ).run()
     }
 
+    /// Select one value from any array of `T`.
+    ///
+    /// The `label` closure converts each item to a display string.
+    /// Defaults to `"\(item)"` so enums, strings, and any `CustomStringConvertible` work out of the box.
+    ///
+    /// ```swift
+    /// // Promptable enum — rawValue used automatically
+    /// let lang = try Promptberry.select("Language:", from: Language.allCases)
+    ///
+    /// // Any type with a custom label
+    /// let server = try Promptberry.select("Server:", from: servers, label: { $0.hostname })
+    ///
+    /// // Filter before passing
+    /// let lang = try Promptberry.select("Language:", from: Language.allCases.filter { $0 != .legacy })
+    /// ```
+    public static func select<T: Sendable & Hashable>(
+        _ message: String,
+        from values: some Collection<T>,
+        label: (T) -> String = { "\($0)" },
+        initialValue: T? = nil,
+        maxItems: Int = 8
+    ) throws -> T {
+        let opts = values.map { SelectOption(value: $0, label: label($0)) }
+        return try SelectPrompt(
+            message: message,
+            options: opts,
+            initialValue: initialValue,
+            maxVisible: maxItems
+        ).run()
+    }
+
+    /// Select multiple values from any array of `T`.
+    ///
+    /// ```swift
+    /// // Promptable enum
+    /// let features = try Promptberry.multiselect("Features:", from: Feature.allCases)
+    ///
+    /// // Struct array with custom label
+    /// let picked = try Promptberry.multiselect("Plugins:", from: plugins, label: { $0.name })
+    /// ```
+    public static func multiselect<T: Sendable & Hashable>(
+        _ message: String,
+        from values: some Collection<T>,
+        label: (T) -> String = { "\($0)" },
+        initialValues: Set<T> = [],
+        required: Bool = true
+    ) throws -> [T] {
+        let opts = values.map { SelectOption(value: $0, label: label($0)) }
+        return try MultiselectPrompt(
+            message: message,
+            options: opts,
+            initialValues: initialValues,
+            required: required,
+            maxVisible: 8
+        ).run()
+    }
+
     /// Create a new spinner for async work.
     public static func spinner() -> Spinner {
         Spinner()
