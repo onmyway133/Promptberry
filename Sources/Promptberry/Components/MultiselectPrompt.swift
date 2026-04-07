@@ -155,6 +155,7 @@ struct MultiselectPrompt<Value: Sendable & Hashable>: Sendable {
             lines.append("\(Symbols.submitted.gray)  \(message.dim)")
             let labels = selected.sorted().map { options[$0].label }.joined(separator: ", ")
             lines.append("\(Symbols.bar.gray)  \(labels.dim)")
+            lines.append(Symbols.bar.gray)
 
         case .cancelled:
             lines.append("\(Symbols.cancelled.red)  \(message.dim)")

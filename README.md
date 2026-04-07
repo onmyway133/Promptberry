@@ -1,6 +1,10 @@
 # Promptberry
 
-Beautiful, interactive CLI prompts for Swift. Inspired by [clack](https://github.com/bombshell-dev/clack).
+<p align="center">
+  <img src="logo.png" width="120" alt="Promptberry logo" />
+</p>
+
+<p align="center">Beautiful, interactive CLI prompts for Swift</p>
 
 ```
 ┌  My App v1.0
@@ -30,7 +34,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourname/Promptberry", from: "1.0.0")
+    .package(url: "https://github.com/onmyway133/Promptberry", from: "1.0.0")
 ],
 targets: [
     .executableTarget(
@@ -115,6 +119,16 @@ Pass a plain `[String]` for quick use:
 let choice = try Promptberry.select("Pick one:", options: ["a", "b", "c"])
 ```
 
+Add `allowOther: true` to let the user type a custom value if none of the options fit:
+
+```swift
+let type_ = try Promptberry.select(
+    "Project type:",
+    options: ["Executable", "Library", "Plugin"],
+    allowOther: true
+)
+```
+
 Or use `SelectOption` for labels and hints:
 
 ```swift
@@ -141,13 +155,37 @@ let lang = try Promptberry.select("Language:", from: Language.self)
 // returns Language.swift, .kotlin, etc.
 ```
 
+Or select from any array of values with a custom label:
+
+```swift
+let server = try Promptberry.select(
+    "Target server:",
+    from: servers,
+    label: { $0.hostname }
+)
+```
+
 ### `multiselect`
 
 Pick multiple items. Space to toggle, `a` to toggle all, Enter to confirm.
 
 ```swift
 // Simple string array
-let features = try Promptberry.multiselect("Features:", options: ["tests", "ci", "docs"])
+let features = try Promptberry.multiselect(
+    "Features:",
+    options: ["tests", "ci", "docs"],
+    initialValues: ["tests"]   // pre-selected
+)
+```
+
+Use `allowOther: true` to let the user append a custom entry:
+
+```swift
+let extras = try Promptberry.multiselect(
+    "Include extras:",
+    options: ["Tests", "CI workflow", "README", "SwiftLint"],
+    allowOther: true
+)
 
 // Or with SelectOption for hints
 let tools = try Promptberry.multiselect(
@@ -174,6 +212,39 @@ let features = try Promptberry.multiselect("Features:", from: Feature.self)
 // returns [Feature]
 ```
 
+### `multiline`
+
+Multi-line text input. Press Enter for new lines, Ctrl+D to submit.
+
+```swift
+let description = try Promptberry.multiline(
+    "Describe your project:",
+    placeholder: "What does it do?",
+    validate: { $0.isEmpty ? "Description required." : nil }
+)
+```
+
+### `autocomplete`
+
+Searchable select — filters options as you type. Tab or Enter to confirm.
+
+```swift
+let pkg = try Promptberry.autocomplete(
+    "Find package:",
+    options: ["ArgumentParser", "AsyncHTTPClient", "Crypto", "NIO", "Vapor"],
+    placeholder: "Type to filter..."
+)
+```
+
+Also works with `SelectOption` for typed values:
+
+```swift
+let server = try Promptberry.autocomplete(
+    "Select server:",
+    options: servers.map { SelectOption(value: $0, label: $0.hostname) }
+)
+```
+
 ### `spinner`
 
 Show an animated spinner while doing async work.
@@ -187,11 +258,52 @@ try await installPackages()    // your async work runs concurrently
 await s.stop("Packages installed!")    // or s.error("Failed.")
 ```
 
-You can update the message while it's running:
+Update the message while it's running:
 
 ```swift
 await s.update("Almost there...")
 ```
+
+### `progress`
+
+Progress bar for known-length operations.
+
+```swift
+let p = Promptberry.progress(total: files.count, message: "Copying files...")
+for file in files {
+    try await copy(file)
+    await p.advance()
+}
+await p.complete("All files copied!")
+```
+
+You can also jump to an absolute value:
+
+```swift
+await p.update(42, message: "Step 42...")
+```
+
+Call `p.error("message")` to abort with error styling.
+
+### `tasks`
+
+Run a sequence of async operations sequentially, each with its own spinner.
+
+```swift
+try await tasks([
+    PromptTask("Scaffolding project structure") {
+        try await scaffold()
+    },
+    PromptTask("Writing Package.swift") {
+        try await writeManifest()
+    },
+    PromptTask("Installing dependencies") {
+        try await installDeps()
+    },
+])
+```
+
+If any task throws, its spinner shows an error and the error propagates.
 
 ## Info & Logging
 
@@ -266,6 +378,10 @@ Run the bundled demo:
 ```bash
 swift run Example
 ```
+
+## Reference
+
+- Inspired by [clack](https://github.com/bombshell-dev/clack)
 
 ## License
 

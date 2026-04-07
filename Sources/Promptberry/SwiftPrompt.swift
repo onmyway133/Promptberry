@@ -137,22 +137,37 @@ public enum Promptberry {
 
     /// Convenience overload — pass plain strings instead of `SelectOption` values.
     ///
+    /// Set `allowOther: true` to append an "Other…" option that lets the user type a custom value.
+    ///
     /// ```swift
     /// let choice = try Promptberry.select("Pick one:", options: ["a", "b", "c"])
+    /// let lang   = try Promptberry.select("Language:", options: ["Swift", "Kotlin"], allowOther: true)
     /// ```
     public static func select(
         _ message: String,
         options: [String],
+        allowOther: Bool = false,
+        otherLabel: String = "Other…",
         initialValue: String? = nil,
         maxItems: Int = 8
     ) throws -> String {
-        let opts = options.map { SelectOption(value: $0, label: $0) }
-        return try SelectPrompt(
+        let allOptions = allowOther ? options + [otherLabel] : options
+        let opts = allOptions.map { SelectOption(value: $0, label: $0) }
+        let picked = try SelectPrompt(
             message: message,
             options: opts,
             initialValue: initialValue,
             maxVisible: maxItems
         ).run()
+        if allowOther && picked == otherLabel {
+            return try TextPrompt(
+                message: "Enter custom value:",
+                placeholder: "",
+                defaultValue: nil,
+                validate: nil
+            ).run()
+        }
+        return picked
     }
 
     /// Multi-choice selection list. Press Space to toggle, Enter to confirm.
@@ -173,23 +188,41 @@ public enum Promptberry {
 
     /// Convenience overload — pass plain strings instead of `SelectOption` values.
     ///
+    /// Set `allowOther: true` to append an "Other…" option. If selected, the user is prompted
+    /// to type a custom value which is appended to the returned array.
+    ///
     /// ```swift
     /// let features = try Promptberry.multiselect("Features:", options: ["tests", "ci", "docs"])
+    /// let tools    = try Promptberry.multiselect("Tools:", options: ["spm", "cmake"], allowOther: true)
     /// ```
     public static func multiselect(
         _ message: String,
         options: [String],
+        allowOther: Bool = false,
+        otherLabel: String = "Other…",
         initialValues: Set<String> = [],
         required: Bool = true
     ) throws -> [String] {
-        let opts = options.map { SelectOption(value: $0, label: $0) }
-        return try MultiselectPrompt(
+        let allOptions = allowOther ? options + [otherLabel] : options
+        let opts = allOptions.map { SelectOption(value: $0, label: $0) }
+        var picked = try MultiselectPrompt(
             message: message,
             options: opts,
             initialValues: initialValues,
             required: required,
             maxVisible: 8
         ).run()
+        if allowOther && picked.contains(otherLabel) {
+            picked.removeAll { $0 == otherLabel }
+            let custom = try TextPrompt(
+                message: "Enter custom value:",
+                placeholder: "",
+                defaultValue: nil,
+                validate: nil
+            ).run()
+            if !custom.isEmpty { picked.append(custom) }
+        }
+        return picked
     }
 
     // MARK: - Promptable enum overloads
@@ -295,9 +328,74 @@ public enum Promptberry {
         ).run()
     }
 
+    /// Multi-line text input. Press Enter for new lines, Ctrl+D to submit.
+    /// - Parameters:
+    ///   - message: The prompt label.
+    ///   - placeholder: Dimmed hint shown when the buffer is completely empty.
+    ///   - validate: Return an error string to reject the joined text, or `nil` to accept.
+    public static func multiline(
+        _ message: String,
+        placeholder: String = "",
+        validate: (@Sendable (String) -> String?)? = nil
+    ) throws -> String {
+        try MultilinePrompt(
+            message: message,
+            placeholder: placeholder,
+            validate: validate
+        ).run()
+    }
+
     /// Create a new spinner for async work.
     public static func spinner() -> Spinner {
         Spinner()
+    }
+
+    /// Create a new progress bar for a known-length operation.
+    ///
+    /// ```swift
+    /// let p = Promptberry.progress(total: files.count, message: "Copying files...")
+    /// for file in files {
+    ///     await p.advance()
+    /// }
+    /// await p.complete("All files copied!")
+    /// ```
+    public static func progress(total: Int, message: String = "") -> Progress {
+        Progress(total: total, message: message)
+    }
+
+    /// Searchable select — filters options as the user types.
+    ///
+    /// ```swift
+    /// let pkg = try Promptberry.autocomplete("Find package:", options: packages)
+    /// ```
+    public static func autocomplete<Value: Sendable>(
+        _ message: String,
+        options: [SelectOption<Value>],
+        placeholder: String = "",
+        maxItems: Int = 6
+    ) throws -> Value {
+        try AutocompletePrompt(
+            message: message,
+            options: options,
+            placeholder: placeholder,
+            maxVisible: maxItems
+        ).run()
+    }
+
+    /// Convenience overload — pass plain strings.
+    public static func autocomplete(
+        _ message: String,
+        options: [String],
+        placeholder: String = "",
+        maxItems: Int = 6
+    ) throws -> String {
+        let opts = options.map { SelectOption(value: $0, label: $0) }
+        return try AutocompletePrompt(
+            message: message,
+            options: opts,
+            placeholder: placeholder,
+            maxVisible: maxItems
+        ).run()
     }
 
     // MARK: - Group

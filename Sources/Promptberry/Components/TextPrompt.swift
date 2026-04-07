@@ -85,6 +85,7 @@ struct TextPrompt: Sendable {
         case .submitted(let value):
             lines.append("\(Symbols.submitted.gray)  \(message.dim)")
             lines.append("\(Symbols.bar.gray)  \(value.dim)")
+            lines.append(Symbols.bar.gray)
 
         case .cancelled:
             lines.append("\(Symbols.cancelled.red)  \(message.dim)")

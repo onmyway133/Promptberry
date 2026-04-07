@@ -72,7 +72,7 @@ public final class Terminal: @unchecked Sendable {
     }
 
     public func writeLine(_ s: String) {
-        write(s + "\n")
+        write(s + "\r\n")
     }
 
     /// Move cursor up N lines, erasing each line — the core redraw primitive.

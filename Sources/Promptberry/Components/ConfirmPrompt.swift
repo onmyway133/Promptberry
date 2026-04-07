@@ -77,6 +77,7 @@ struct ConfirmPrompt: Sendable {
         case .submitted(let v):
             lines.append("\(Symbols.submitted.gray)  \(message.dim)")
             lines.append("\(Symbols.bar.gray)  \((v ? activeLabel : inactiveLabel).dim)")
+            lines.append(Symbols.bar.gray)
 
         case .cancelled:
             lines.append("\(Symbols.cancelled.red)  \(message.dim)")

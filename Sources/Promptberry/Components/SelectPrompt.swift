@@ -116,6 +116,7 @@ struct SelectPrompt<Value: Sendable>: Sendable {
         case .submitted(let idx):
             lines.append("\(Symbols.submitted.gray)  \(message.dim)")
             lines.append("\(Symbols.bar.gray)  \(options[idx].label.dim)")
+            lines.append(Symbols.bar.gray)
 
         case .cancelled:
             lines.append("\(Symbols.cancelled.red)  \(message.dim)")

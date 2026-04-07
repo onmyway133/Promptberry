@@ -66,6 +66,7 @@ struct PasswordPrompt: Sendable {
         case .submitted(let count):
             lines.append("\(Symbols.submitted.gray)  \(message.dim)")
             lines.append("\(Symbols.bar.gray)  \(String(repeating: mask, count: count).dim)")
+            lines.append(Symbols.bar.gray)
 
         case .cancelled:
             lines.append("\(Symbols.cancelled.red)  \(message.dim)")
