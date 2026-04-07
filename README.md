@@ -1,4 +1,4 @@
-# swift-prompt
+# Promptberry
 
 Beautiful, interactive CLI prompts for Swift. Inspired by [clack](https://github.com/bombshell-dev/clack).
 
@@ -30,13 +30,13 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/yourname/swift-prompt", from: "1.0.0")
+    .package(url: "https://github.com/yourname/Promptberry", from: "1.0.0")
 ],
 targets: [
     .executableTarget(
         name: "MyApp",
         dependencies: [
-            .product(name: "SwiftPrompt", package: "swift-prompt")
+            .product(name: "Promptberry", package: "Promptberry")
         ]
     )
 ]
@@ -45,24 +45,24 @@ targets: [
 ## Usage
 
 ```swift
-import SwiftPrompt
+import Promptberry
 
-SwiftPrompt.intro("My App v1.0")
+Promptberry.intro("My App v1.0")
 
-let name = try SwiftPrompt.text("What's your name?", placeholder: "e.g. Ada")
-let pass = try SwiftPrompt.password("Choose a password:")
-let go   = try SwiftPrompt.confirm("Continue?")
+let name = try Promptberry.text("What's your name?", placeholder: "e.g. Ada")
+let pass = try Promptberry.password("Choose a password:")
+let go   = try Promptberry.confirm("Continue?")
 
-SwiftPrompt.outro("All done, \(name)!")
+Promptberry.outro("All done, \(name)!")
 ```
 
 Wrap everything in a `do/catch` to handle cancellation (Ctrl+C):
 
 ```swift
 do {
-    let name = try SwiftPrompt.text("Name?")
+    let name = try Promptberry.text("Name?")
 } catch is PromptCancelled {
-    SwiftPrompt.cancel("Aborted.")
+    Promptberry.cancel("Aborted.")
     exit(0)
 }
 ```
@@ -74,7 +74,7 @@ do {
 Single-line text input.
 
 ```swift
-let name = try SwiftPrompt.text(
+let name = try Promptberry.text(
     "What's your name?",
     placeholder: "e.g. Ada Lovelace",   // shown when empty
     defaultValue: "Anonymous",           // returned on empty Enter
@@ -89,7 +89,7 @@ let name = try SwiftPrompt.text(
 Like `text`, but input is masked.
 
 ```swift
-let secret = try SwiftPrompt.password("Password:", mask: "•")
+let secret = try Promptberry.password("Password:", mask: "•")
 ```
 
 ### `confirm`
@@ -97,7 +97,7 @@ let secret = try SwiftPrompt.password("Password:", mask: "•")
 Yes/No toggle. Use arrow keys, `y`/`n`, or Space to switch.
 
 ```swift
-let ok = try SwiftPrompt.confirm(
+let ok = try Promptberry.confirm(
     "Continue?",
     active: "Yes",
     inactive: "No",
@@ -109,8 +109,16 @@ let ok = try SwiftPrompt.confirm(
 
 Pick one item from a list. Navigate with `↑`/`↓` or `j`/`k`.
 
+Pass a plain `[String]` for quick use:
+
 ```swift
-let lang = try SwiftPrompt.select(
+let choice = try Promptberry.select("Pick one:", options: ["a", "b", "c"])
+```
+
+Or use `SelectOption` for labels and hints:
+
+```swift
+let lang = try Promptberry.select(
     "Preferred language:",
     options: [
         SelectOption(value: "swift",  label: "Swift",  hint: "recommended"),
@@ -122,12 +130,27 @@ let lang = try SwiftPrompt.select(
 )
 ```
 
+Or pass your own enum — conform it to `Promptable`:
+
+```swift
+enum Language: String, CaseIterable, Promptable {
+    case swift, kotlin, python, rust
+}
+
+let lang = try Promptberry.select("Language:", from: Language.self)
+// returns Language.swift, .kotlin, etc.
+```
+
 ### `multiselect`
 
 Pick multiple items. Space to toggle, `a` to toggle all, Enter to confirm.
 
 ```swift
-let tools = try SwiftPrompt.multiselect(
+// Simple string array
+let features = try Promptberry.multiselect("Features:", options: ["tests", "ci", "docs"])
+
+// Or with SelectOption for hints
+let tools = try Promptberry.multiselect(
     "Build tools:",
     options: [
         SelectOption(value: "spm",   label: "Swift Package Manager"),
@@ -140,12 +163,23 @@ let tools = try SwiftPrompt.multiselect(
 // returns [String]
 ```
 
+Or with a `Promptable` enum:
+
+```swift
+enum Feature: String, CaseIterable, Promptable {
+    case tests, ci, docs, linting
+}
+
+let features = try Promptberry.multiselect("Features:", from: Feature.self)
+// returns [Feature]
+```
+
 ### `spinner`
 
 Show an animated spinner while doing async work.
 
 ```swift
-let s = SwiftPrompt.spinner()
+let s = Promptberry.spinner()
 await s.start("Installing packages...")
 
 try await installPackages()    // your async work runs concurrently
@@ -163,10 +197,10 @@ await s.update("Almost there...")
 
 ```swift
 // Bordered info box
-SwiftPrompt.note("Line 1\nLine 2", title: "Important")
+Promptberry.note("Line 1\nLine 2", title: "Important")
 
 // Cancellation message
-SwiftPrompt.cancel("Setup aborted.")
+Promptberry.cancel("Setup aborted.")
 
 // Semantic log lines (non-interactive)
 log.info("Reading config...")
@@ -181,14 +215,14 @@ log.error("Connection refused (non-fatal)")
 Sequence multiple prompts with a shared cancellation handler:
 
 ```swift
-let profile = try SwiftPrompt.group(
+let profile = try Promptberry.group(
     onCancel: { _ in
-        SwiftPrompt.cancel("Cancelled.")
+        Promptberry.cancel("Cancelled.")
         exit(0)
     }
 ) {
-    let email = try SwiftPrompt.text("Email?")
-    let age   = try SwiftPrompt.text("Age?",
+    let email = try Promptberry.text("Email?")
+    let age   = try Promptberry.text("Age?",
         validate: { Int($0) == nil ? "Enter a number." : nil })
     return (email: email, age: age)
 }

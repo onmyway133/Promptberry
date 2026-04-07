@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Usage:
 /// ```swift
-/// let s = SwiftPrompt.spinner()
+/// let s = Promptberry.spinner()
 /// await s.start("Installing...")
 /// try await doWork()
 /// await s.stop("Done!")

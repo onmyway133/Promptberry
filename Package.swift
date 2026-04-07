@@ -2,25 +2,30 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-prompt",
+    name: "Promptberry",
     platforms: [.macOS(.v13)],
     products: [
-        .library(name: "SwiftPrompt", targets: ["SwiftPrompt"])
+        .library(name: "Promptberry", targets: ["Promptberry"])
     ],
     targets: [
         .target(
-            name: "SwiftPrompt",
-            path: "Sources/SwiftPrompt"
+            name: "Promptberry",
+            path: "Sources/Promptberry"
         ),
         .executableTarget(
             name: "Example",
-            dependencies: ["SwiftPrompt"],
+            dependencies: ["Promptberry"],
             path: "Sources/Example"
         ),
+        .executableTarget(
+            name: "SimpleExample",
+            dependencies: ["Promptberry"],
+            path: "Examples"
+        ),
         .testTarget(
-            name: "SwiftPromptTests",
-            dependencies: ["SwiftPrompt"],
-            path: "Tests/SwiftPromptTests"
+            name: "PromptberryTests",
+            dependencies: ["Promptberry"],
+            path: "Tests/PromptberryTests"
         )
     ]
 )

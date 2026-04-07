@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import SwiftPrompt
+@testable import Promptberry
 
 // MARK: - Color tests
 // Force colors on so tests are independent of whether stdout is a TTY.

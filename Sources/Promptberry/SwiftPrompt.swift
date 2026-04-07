@@ -1,21 +1,38 @@
 import Foundation
 
-/// `SwiftPrompt` — Beautiful interactive CLI prompts for Swift.
+// MARK: - Promptable protocol
+
+/// Conform your enum to `Promptable` to use it directly with `select` and `multiselect`.
+///
+/// ```swift
+/// enum Language: String, CaseIterable, Promptable {
+///     case swift, kotlin, python, rust
+/// }
+///
+/// let lang  = try Promptberry.select("Language:", from: Language.self)
+/// let langs = try Promptberry.multiselect("Languages:", from: Language.self)
+/// ```
+public protocol Promptable: CaseIterable, RawRepresentable, Sendable, Hashable
+    where RawValue == String {}
+
+// MARK: - Promptberry
+
+/// Promptberry — Beautiful interactive CLI prompts for Swift.
 ///
 /// Inspired by [clack](https://github.com/bombshell-dev/clack).
 ///
 /// Usage:
 /// ```swift
-/// import SwiftPrompt
+/// import Promptberry
 ///
-/// SwiftPrompt.intro("My App v1.0")
+/// Promptberry.intro("My App v1.0")
 ///
-/// let name = try await SwiftPrompt.text("What's your name?")
-/// let go   = try await SwiftPrompt.confirm("Continue?")
+/// let name = try await Promptberry.text("What's your name?")
+/// let go   = try await Promptberry.confirm("Continue?")
 ///
-/// SwiftPrompt.outro("Done!")
+/// Promptberry.outro("Done!")
 /// ```
-public enum SwiftPrompt {
+public enum Promptberry {
 
     // MARK: - Frame
 
@@ -121,7 +138,7 @@ public enum SwiftPrompt {
     /// Convenience overload — pass plain strings instead of `SelectOption` values.
     ///
     /// ```swift
-    /// let choice = try SwiftPrompt.select("Pick one:", options: ["a", "b", "c"])
+    /// let choice = try Promptberry.select("Pick one:", options: ["a", "b", "c"])
     /// ```
     public static func select(
         _ message: String,
@@ -157,7 +174,7 @@ public enum SwiftPrompt {
     /// Convenience overload — pass plain strings instead of `SelectOption` values.
     ///
     /// ```swift
-    /// let features = try SwiftPrompt.multiselect("Features:", options: ["tests", "ci", "docs"])
+    /// let features = try Promptberry.multiselect("Features:", options: ["tests", "ci", "docs"])
     /// ```
     public static func multiselect(
         _ message: String,
@@ -166,6 +183,52 @@ public enum SwiftPrompt {
         required: Bool = true
     ) throws -> [String] {
         let opts = options.map { SelectOption(value: $0, label: $0) }
+        return try MultiselectPrompt(
+            message: message,
+            options: opts,
+            initialValues: initialValues,
+            required: required,
+            maxVisible: 8
+        ).run()
+    }
+
+    // MARK: - Promptable enum overloads
+
+    /// Select one case from a `Promptable` enum — no options array needed.
+    ///
+    /// ```swift
+    /// enum Language: String, CaseIterable, Promptable {
+    ///     case swift, kotlin, python
+    /// }
+    /// let lang = try Promptberry.select("Language:", from: Language.self)
+    /// ```
+    public static func select<T: Promptable>(
+        _ message: String,
+        from type_: T.Type,
+        initialValue: T? = nil,
+        maxItems: Int = 8
+    ) throws -> T where T.AllCases: RandomAccessCollection {
+        let opts = T.allCases.map { SelectOption(value: $0, label: $0.rawValue) }
+        return try SelectPrompt(
+            message: message,
+            options: opts,
+            initialValue: initialValue,
+            maxVisible: maxItems
+        ).run()
+    }
+
+    /// Select multiple cases from a `Promptable` enum — no options array needed.
+    ///
+    /// ```swift
+    /// let features = try Promptberry.multiselect("Features:", from: Feature.self)
+    /// ```
+    public static func multiselect<T: Promptable>(
+        _ message: String,
+        from type_: T.Type,
+        initialValues: Set<T> = [],
+        required: Bool = true
+    ) throws -> [T] where T.AllCases: RandomAccessCollection {
+        let opts = T.allCases.map { SelectOption(value: $0, label: $0.rawValue) }
         return try MultiselectPrompt(
             message: message,
             options: opts,

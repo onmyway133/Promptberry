@@ -1,30 +1,30 @@
-import SwiftPrompt
+import Promptberry
 import Foundation
 
 // swift-prompt demo — showcases all components
 
 do {
-    SwiftPrompt.intro("swift-prompt  demo")
+    Promptberry.intro("swift-prompt  demo")
 
     // --- Text ---
-    let name = try SwiftPrompt.text(
+    let name = try Promptberry.text(
         "What's your name?",
         placeholder: "e.g. Ada Lovelace",
         validate: { $0.count < 2 ? "Must be at least 2 characters." : nil }
     )
 
     // --- Password ---
-    let _ = try SwiftPrompt.password("Choose a password:")
+    let _ = try Promptberry.password("Choose a password:")
 
     // --- Confirm ---
-    let newsletter = try SwiftPrompt.confirm(
+    let newsletter = try Promptberry.confirm(
         "Subscribe to updates?",
         active: "Yes please",
         inactive: "No thanks"
     )
 
     // --- Select ---
-    let language = try SwiftPrompt.select(
+    let language = try Promptberry.select(
         "Preferred language:",
         options: [
             SelectOption(value: "swift",  label: "Swift",  hint: "recommended"),
@@ -39,7 +39,7 @@ do {
     )
 
     // --- Multiselect ---
-    let tools = try SwiftPrompt.multiselect(
+    let tools = try Promptberry.multiselect(
         "Select build tools:",
         options: [
             SelectOption(value: "spm",   label: "Swift Package Manager"),
@@ -52,13 +52,13 @@ do {
     )
 
     // --- Note ---
-    SwiftPrompt.note(
+    Promptberry.note(
         "Name: \(name)\nLanguage: \(language)\nTools: \(tools.joined(separator: ", "))\nNewsletter: \(newsletter ? "yes" : "no")",
         title: "Your selections"
     )
 
     // --- Spinner ---
-    let s = SwiftPrompt.spinner()
+    let s = Promptberry.spinner()
     await s.start("Setting up your environment...")
     try await Task.sleep(nanoseconds: 1_500_000_000)
     await s.update("Almost there...")
@@ -73,17 +73,17 @@ do {
     log.error("Optional linter not found (non-fatal)")
 
     // --- Group ---
-    let profile = try SwiftPrompt.group(
+    let profile = try Promptberry.group(
         onCancel: { prompt in
-            SwiftPrompt.cancel("Cancelled at: \(prompt)")
+            Promptberry.cancel("Cancelled at: \(prompt)")
             exit(0)
         }
     ) {
-        let email = try SwiftPrompt.text(
+        let email = try Promptberry.text(
             "Email address?",
             placeholder: "you@example.com"
         )
-        let age = try SwiftPrompt.text(
+        let age = try Promptberry.text(
             "Your age?",
             validate: { Int($0) == nil ? "Please enter a number." : nil }
         )
@@ -92,10 +92,10 @@ do {
 
     log.success("Profile: \(profile.email), age \(profile.age)")
 
-    SwiftPrompt.outro("All set! Happy coding, \(name).")
+    Promptberry.outro("All set! Happy coding, \(name).")
 
 } catch is PromptCancelled {
-    SwiftPrompt.cancel("Setup cancelled. See you next time!")
+    Promptberry.cancel("Setup cancelled. See you next time!")
     exit(0)
 } catch {
     log.error("Unexpected error: \(error)")
