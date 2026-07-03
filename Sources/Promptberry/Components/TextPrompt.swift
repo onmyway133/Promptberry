@@ -59,6 +59,12 @@ struct TextPrompt: Sendable {
                 state = .active
                 render(state: state, input: input, lineCount: &lineCount)
 
+            case .paste(let text):
+                // Single-line field: pasted newlines become spaces, never Enter.
+                input.append(text.strippingControlCharacters.replacingOccurrences(of: "\n", with: " "))
+                state = .active
+                render(state: state, input: input, lineCount: &lineCount)
+
             default:
                 continue
             }

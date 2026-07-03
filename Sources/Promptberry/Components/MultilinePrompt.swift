@@ -74,6 +74,20 @@ struct MultilinePrompt: Sendable {
                 state = .active
                 render(state: state, lines: lines, current: current, lineCount: &lineCount)
 
+            case .paste(let text):
+                // Pasted newlines become line breaks, not submissions.
+                let parts = text.strippingControlCharacters
+                    .split(separator: "\n", omittingEmptySubsequences: false)
+                for (index, part) in parts.enumerated() {
+                    if index > 0 {
+                        lines.append(current)
+                        current = ""
+                    }
+                    current += part
+                }
+                state = .active
+                render(state: state, lines: lines, current: current, lineCount: &lineCount)
+
             default:
                 continue
             }
