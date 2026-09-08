@@ -113,12 +113,16 @@ public final class Terminal: @unchecked Sendable {
 
     public var width: Int {
         var ws = winsize()
-        #if canImport(Musl)
+        #if canImport(Darwin)
+        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #elseif canImport(Glibc)
+        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #elseif canImport(Musl)
         // The Static Linux SDK marks variadic ioctl unavailable in its Musl
         // module; tcgetwinsize is musl's direct non-variadic equivalent.
         let result = tcgetwinsize(STDOUT_FILENO, &ws)
         #else
-        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #error("Unsupported platform: terminal size requires Darwin, Glibc, or Musl")
         #endif
         if result == 0, ws.ws_col > 0 {
             return Int(ws.ws_col)
@@ -128,10 +132,14 @@ public final class Terminal: @unchecked Sendable {
 
     public var height: Int {
         var ws = winsize()
-        #if canImport(Musl)
+        #if canImport(Darwin)
+        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #elseif canImport(Glibc)
+        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #elseif canImport(Musl)
         let result = tcgetwinsize(STDOUT_FILENO, &ws)
         #else
-        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #error("Unsupported platform: terminal size requires Darwin, Glibc, or Musl")
         #endif
         if result == 0, ws.ws_row > 0 {
             return Int(ws.ws_row)
