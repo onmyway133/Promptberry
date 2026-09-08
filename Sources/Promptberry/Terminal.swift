@@ -1,5 +1,13 @@
-import Darwin
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+@preconcurrency import Glibc
+#elseif canImport(Musl)
+import Musl
+#else
+#error("Unsupported runtime")
+#endif
 
 // MARK: - Key
 
@@ -34,10 +42,10 @@ public final class Terminal: @unchecked Sendable {
         guard tcgetattr(STDIN_FILENO, &originalTermios) == 0 else { return }
 
         var raw = originalTermios
-        raw.c_lflag &= ~UInt(ICANON | ECHO | ECHOE | ECHOK | ECHONL | IEXTEN | ISIG)
-        raw.c_iflag &= ~UInt(IXON | ICRNL | INPCK | ISTRIP | BRKINT)
-        raw.c_oflag &= ~UInt(OPOST)
-        raw.c_cflag |= UInt(CS8)
+        raw.c_lflag &= ~tcflag_t(ICANON | ECHO | ECHOE | ECHOK | ECHONL | IEXTEN | ISIG)
+        raw.c_iflag &= ~tcflag_t(IXON | ICRNL | INPCK | ISTRIP | BRKINT)
+        raw.c_oflag &= ~tcflag_t(OPOST)
+        raw.c_cflag |= tcflag_t(CS8)
 
         // Set VMIN=1 (read at least 1 byte), VTIME=0 (no timeout)
         // c_cc is a fixed-size tuple; use withUnsafeMutableBytes for indexed access
@@ -65,9 +73,18 @@ public final class Terminal: @unchecked Sendable {
     // MARK: - Output
 
     public func write(_ s: String) {
-        guard let data = s.data(using: .utf8) else { return }
+        // Empty Data has a nil baseAddress. Skip instead of force-unwrapping.
+        guard let data = s.data(using: .utf8), !data.isEmpty else { return }
         data.withUnsafeBytes { ptr in
+            #if canImport(Darwin)
             _ = Darwin.write(STDOUT_FILENO, ptr.baseAddress!, ptr.count)
+            #elseif canImport(Glibc)
+            _ = Glibc.write(STDOUT_FILENO, ptr.baseAddress!, ptr.count)
+            #elseif canImport(Musl)
+            _ = Musl.write(STDOUT_FILENO, ptr.baseAddress!, ptr.count)
+            #else
+            #error("Unsupported platform: Terminal.write requires Darwin, Glibc, or Musl")
+            #endif
         }
     }
 
@@ -96,7 +113,14 @@ public final class Terminal: @unchecked Sendable {
 
     public var width: Int {
         var ws = winsize()
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0, ws.ws_col > 0 {
+        #if canImport(Musl)
+        // The Static Linux SDK marks variadic ioctl unavailable in its Musl
+        // module; tcgetwinsize is musl's direct non-variadic equivalent.
+        let result = tcgetwinsize(STDOUT_FILENO, &ws)
+        #else
+        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #endif
+        if result == 0, ws.ws_col > 0 {
             return Int(ws.ws_col)
         }
         return 80
@@ -104,7 +128,12 @@ public final class Terminal: @unchecked Sendable {
 
     public var height: Int {
         var ws = winsize()
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == 0, ws.ws_row > 0 {
+        #if canImport(Musl)
+        let result = tcgetwinsize(STDOUT_FILENO, &ws)
+        #else
+        let result = ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &ws)
+        #endif
+        if result == 0, ws.ws_row > 0 {
             return Int(ws.ws_row)
         }
         return 24
@@ -118,7 +147,15 @@ public final class Terminal: @unchecked Sendable {
     /// Safe to call from an async Task — blocks the OS thread, not the cooperative pool.
     public func readKey() -> Key {
         var buf = [UInt8](repeating: 0, count: 8)
+        #if canImport(Darwin)
         let n = Darwin.read(STDIN_FILENO, &buf, 8)
+        #elseif canImport(Glibc)
+        let n = Glibc.read(STDIN_FILENO, &buf, 8)
+        #elseif canImport(Musl)
+        let n = Musl.read(STDIN_FILENO, &buf, 8)
+        #else
+        #error("Unsupported platform: Terminal.readKey requires Darwin, Glibc, or Musl")
+        #endif
         guard n > 0 else { return .unknown([]) }
 
         switch buf[0] {
