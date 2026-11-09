@@ -31,6 +31,7 @@
 
 - Swift 6.0+
 - macOS 13+
+- Linux
 
 ## Installation
 

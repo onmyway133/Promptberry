@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths: &shared_paths
+      - "**.swift"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    branches: [main]
+    paths: *shared_paths
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-ci
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  macos-test:
+    name: macOS (Xcode ${{ matrix.xcode-version }})
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            xcode-version: "16.2" # swift 6.0.3
+          - os: macos-26
+            xcode-version: "26.6" # swift 6.3.3
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Xcode
+        id: setup-xcode
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: ${{ matrix.xcode-version }}
+
+      - name: Swift version
+        run: swift --version
+
+      - name: Cache Swift packages
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            .build
+          key: ${{ runner.os }}-spm-${{ steps.setup-xcode.outputs.version }}-${{ hashFiles('Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-${{ steps.setup-xcode.outputs.version }}-
+            ${{ runner.os }}-spm-
+
+      - name: Run Tests
+        run: swift test
+
+      - name: Build release
+        run: swift build -c release
+
+  linux-test:
+    name: Linux (Swift ${{ matrix.swift }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        swift: ["6.0", "6.3"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: ${{ matrix.swift }}
+          skip-verify-signature: true
+
+      - name: Cache Swift packages
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+        with:
+          path: |
+            .build
+          key: ${{ runner.os }}-swift-${{ matrix.swift }}-${{ hashFiles('Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-${{ matrix.swift }}-
+
+      - name: Run Tests
+        run: swift test
+
+      - name: Build release
+        run: swift build -c release

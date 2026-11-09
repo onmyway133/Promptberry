@@ -1,5 +1,13 @@
-import Darwin
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#elseif canImport(Glibc)
+@preconcurrency import Glibc
+#elseif canImport(Musl)
+import Musl
+#else
+#error("Unsupported runtime")
+#endif
 
 // MARK: - Color support detection (Rainbow-inspired)
 

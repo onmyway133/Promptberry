@@ -1,5 +1,13 @@
 import Promptberry
+#if canImport(Darwin)
 import Darwin
+#elseif canImport(Glibc)
+@preconcurrency import Glibc
+#elseif canImport(Musl)
+import Musl
+#else
+#error("Unsupported runtime")
+#endif
 
 // A minimal project scaffolding wizard.
 // Run with: swift run SimpleExample
