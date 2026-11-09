@@ -81,7 +81,7 @@ struct SimpleExample {
             await p.complete(message: "Files generated!")
 
             Promptberry.note(
-                "Type:     \(type_)\nExtras:   \(features.joined(separator: ", "))\nLicense:  \(license)\nAbout:    \(description)",
+                "Type:     \(type_)\nExtras:   \(features.joined(separator: ", "))\nLicense:  \(license)\nAbout:    \(description.split(separator: "\n").joined(separator: " "))",
                 title: name
             )
 

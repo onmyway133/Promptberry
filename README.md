@@ -30,8 +30,7 @@
 ## Requirements
 
 - Swift 6.0+
-- macOS 13+
-- Linux
+- macOS 13+, or Linux (Glibc or Musl, including the Static Linux SDK)
 
 ## Installation
 
@@ -53,6 +52,16 @@ targets: [
     )
 ]
 ```
+
+## Try it
+
+Clone the repo and run the demo wizard from the GIF above:
+
+```sh
+swift run SimpleExample
+```
+
+`swift run Example` shows more: `password`, `spinner`, `group` and the log styles.
 
 ## Usage
 
@@ -377,6 +386,15 @@ Force colors on even in non-TTY contexts:
 ```swift
 ColorSupport.enabled = true
 // or set FORCE_COLOR=1 in the environment
+```
+
+## Recording the demo
+
+The GIF is generated from [`demo.tape`](demo.tape) with [VHS](https://github.com/charmbracelet/vhs):
+
+```sh
+brew install vhs
+vhs demo.tape   # writes images/prompt.gif
 ```
 
 ## Reference
