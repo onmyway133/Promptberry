@@ -80,8 +80,11 @@ public actor Progress {
         let t = Terminal.shared
         let clamped = max(0.0, min(1.0, Double(current) / Double(total)))
 
-        // "│  [████████████░░░░░░░░]  100%  " is ~14 chars overhead
-        let availableWidth = t.width - 14
+        // "│  [" + "]" + "  100%" is 11 columns, plus "  message". Keep one
+        // spare column: a line that wraps breaks the "\r" redraw and every
+        // update then lands on a new line.
+        let suffixWidth = message.isEmpty ? 0 : message.count + 2
+        let availableWidth = t.width - 12 - suffixWidth
         let barWidth = max(4, min(40, availableWidth))
 
         let filled = Int(Double(barWidth) * clamped)
