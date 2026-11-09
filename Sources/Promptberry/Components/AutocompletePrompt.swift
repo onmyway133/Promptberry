@@ -129,6 +129,13 @@ struct AutocompletePrompt<Value: Sendable>: Sendable {
                 state = .active
                 render(state: state, input: input, filtered: filtered, highlightCursor: highlightCursor, lineCount: &lineCount)
 
+            case .paste(let text):
+                input.append(text.strippingControlCharacters.replacingOccurrences(of: "\n", with: " "))
+                filtered = applyFilter(input: input)
+                highlightCursor = -1
+                state = .active
+                render(state: state, input: input, filtered: filtered, highlightCursor: highlightCursor, lineCount: &lineCount)
+
             default:
                 continue
             }

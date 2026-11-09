@@ -44,6 +44,12 @@ struct PasswordPrompt: Sendable {
                 actual.append(c)
                 render(state: state, maskedCount: actual.count, lineCount: &lineCount)
 
+            case .paste(let text):
+                // Pasted passwords often carry a trailing newline — drop newlines
+                // rather than submitting early.
+                actual.append(text.strippingControlCharacters.replacingOccurrences(of: "\n", with: ""))
+                render(state: state, maskedCount: actual.count, lineCount: &lineCount)
+
             default:
                 continue
             }
